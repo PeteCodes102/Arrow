@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 import pandas as pd
 
-def plot_trading_pnl(dates, pnl, title="Trading PnL Over Time"):
+def plot_trading_pnl(dates, pnl, title):
     """
     Creates a simple, clean Plotly line chart for trading PnL,
     removing large time gaps between trades on the x-axis.
