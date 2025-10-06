@@ -124,16 +124,14 @@ class FilterParams(BaseModel):
 
     @model_validator(mode="after")
     def _check_time_and_date_consistency(cls, values):
-        st = values.get("start_time")
-        et = values.get("end_time")
-        if (st is None) ^ (et is None):
-            raise ValueError("both start_time and end_time must be provided together")
-
-        sd = values.get("start_date")
-        ed = values.get("end_date")
-        if sd is not None and ed is not None and ed < sd:
-            raise ValueError("end_date must be on or after start_date")
-
+        st = values.start_time
+        et = values.end_time
+        if (st is not None) != (et is not None):
+            raise ValueError("Both start_time and end_time must be provided together.")
+        sd = values.start_date
+        ed = values.end_date
+        if sd and ed and ed < sd:
+            raise ValueError("end_date must be on or after start_date.")
         return values
 
     def to_filter_kwargs(self) -> dict:
