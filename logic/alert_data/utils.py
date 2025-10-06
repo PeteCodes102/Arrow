@@ -1,7 +1,8 @@
 import pandas as pd
 
-from logic.alert_data.processing import *
 from logic.alert_data.filters import *
+from logic.alert_data.processing import *
+
 
 # ==> Filterable, Clean Json DataFrame Pipe
 def clean_filterable_json_df_pipe(df: pd.DataFrame) -> pd.DataFrame:
@@ -20,16 +21,19 @@ def clean_filterable_json_df_pipe(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: Processed DataFrame ready for P&L or plotting operations.
     """
 
-  # copy the data
-  df = df.copy()
+    # copy the data
 
-  # extract the description column and make into its own dataframe
-  json_df = extract_json_from_description(df)
 
-  # set the timestamp as the index and format it
-  fmt_ts_df = format_timestamp_column_and_set_as_index(json_df)
+    df = df.copy()
 
-  return trim_to_closed_trades(fmt_ts_df)
+    # extract the description column and make into its own dataframe
+    json_df = extract_json_from_description(df)
+
+    # set the timestamp as the index and format it
+    fmt_ts_df = format_timestamp_column_and_set_as_index(json_df)
+
+    return trim_to_closed_trades(fmt_ts_df)
+
 
 def get_filtered_split_data(df: pd.DataFrame, **kwargs) -> AlgoDict:
     """
@@ -42,8 +46,10 @@ def get_filtered_split_data(df: pd.DataFrame, **kwargs) -> AlgoDict:
     Returns:
         AlgoDict: Dictionary mapping strategy name to filtered DataFrame.
     """
-  split_data = process_and_split_data(df)
-  return filter_split_data(split_data, **kwargs)
+
+
+    split_data = process_and_split_data(df)
+    return filter_split_data(split_data, **kwargs)
 
 
 def filter_split_data(split_data: dict[str, pd.DataFrame], **kwargs) -> dict[str, pd.DataFrame]:
@@ -58,13 +64,16 @@ def filter_split_data(split_data: dict[str, pd.DataFrame], **kwargs) -> dict[str
     Returns:
         dict[str, pd.DataFrame]: Dictionary mapping strategy name to filtered DataFrame.
     """
-  output_dict = {}
-  for name, df in split_data.items():
-    try:
-      output_dict[name] = filter_alert_data(df, **kwargs)
-    except Exception as e:
-      print(f"Error processing {name}: {e}")
-  return output_dict
+
+
+    output_dict = {}
+    for name, df in split_data.items():
+        try:
+            output_dict[name] = filter_alert_data(df, **kwargs)
+        except Exception as e:
+            print(f"Error processing {name}: {e}")
+    return output_dict
+
 
 # pipe to plot PnL over time
 def add_profit_and_fmt(df: pd.DataFrame, delta: float, multiplier: float) -> pd.DataFrame:
@@ -79,10 +88,13 @@ def add_profit_and_fmt(df: pd.DataFrame, delta: float, multiplier: float) -> pd.
     Returns:
         pd.DataFrame: DataFrame containing only exit trades with profit columns.
     """
-  df = df.copy()
-  profit_df = add_trade_profit(df, delta=delta, multiplier=multiplier)
 
-  return profit_df[profit_df[TRADE_TYPE] == EXIT]
+
+    df = df.copy()
+    profit_df = add_trade_profit(df, delta=delta, multiplier=multiplier)
+
+    return profit_df[profit_df[TRADE_TYPE] == EXIT]
+
 
 # pipe to make filtered df
 def apply_filters_and_profit(df: pd.DataFrame, delta: float, multiplier: float, flip: bool, **kwargs) -> pd.DataFrame:
@@ -99,16 +111,20 @@ def apply_filters_and_profit(df: pd.DataFrame, delta: float, multiplier: float, 
     Returns:
         pd.DataFrame: DataFrame containing only exit trades with profit columns.
     """
-  df = df.copy()
-  filterable_json_df = clean_filterable_json_df_pipe(df)
-  filtered_df = filter_alert_data(filterable_json_df, **kwargs)
 
-  if flip:
+
+    df = df.copy()
+    filterable_json_df = clean_filterable_json_df_pipe(df)
+    filtered_df = filter_alert_data(filterable_json_df, **kwargs)
+
+    if flip:
         filtered_df = apply_flips(filtered_df)
 
-  return add_profit_and_fmt(filtered_df, multiplier=multiplier, delta=delta)
+    return add_profit_and_fmt(filtered_df, multiplier=multiplier, delta=delta)
 
-def get_profit_df_by_name(master_df: pd.DataFrame, name: str, delta: float, multiplier: float = 4.0, flip: bool = False, **kwargs) -> pd.DataFrame:
+
+def get_profit_df_by_name(master_df: pd.DataFrame, name: str, delta: float, multiplier: float = 4.0, flip: bool = False,
+                          **kwargs) -> pd.DataFrame:
     """
     Get the profit DataFrame for a specific strategy name after filtering and processing.
 
@@ -126,10 +142,12 @@ def get_profit_df_by_name(master_df: pd.DataFrame, name: str, delta: float, mult
     Raises:
         ValueError: If the specified name is not found in the data.
     """
-  split_data = process_and_split_data(master_df)
-  if name not in split_data:
-    raise ValueError(f"Name '{name}' not found in data.")
 
-  df = split_data[name]
 
-  return apply_filters_and_profit(df, delta=delta, multiplier=multiplier, flip=flip, **kwargs)
+    split_data = process_and_split_data(master_df)
+    if name not in split_data:
+        raise ValueError(f"Name '{name}' not found in data.")
+
+    df = split_data[name]
+
+    return apply_filters_and_profit(df, delta=delta, multiplier=multiplier, flip=flip, **kwargs)
