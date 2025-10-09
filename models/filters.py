@@ -7,8 +7,6 @@ options accepted by the FastAPI endpoints. The model mirrors the keys used by
 route handlers can pass the values directly to the filtering utilities.
 """
 
-from __future__ import annotations
-
 from datetime import date
 from typing import List, Optional, Union
 import re

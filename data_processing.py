@@ -26,24 +26,14 @@ Original file is located at
 ```
 """
 
-import pandas as pd
-import numpy as np
-from typing import Optional, Dict
-from datetime import datetime as dt
-import re
-
-from logic.alert_data.helpers import load_data_from_csv
-from constants import *
+from core.constants import *
 """# Models / Typing"""
 
 # Typing
 
-import datetime as dt
-from typing import Optional, Literal, Dict, List
+from typing import Dict
 
-
-
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict
 
 class RawAlert(BaseModel):
   contract: str
@@ -59,30 +49,12 @@ class RawAlert(BaseModel):
 
 
 # Utils
-import json
-
-
-
-
-
-
 
 
 # ==> Trim Data to show only closed trades
 from __future__ import annotations
-import pandas as pd
-from typing import Iterable
 
 # === Filters === #
-
-from typing import Iterable, Sequence
-import pandas as pd
-import numpy as np
-from datetime import time
-import re
-
-
-
 
 
 # validate start_time and end_time function
@@ -94,15 +66,9 @@ import re
 
 # ==> Calculate Profit
 from __future__ import annotations
-import pandas as pd
-import numpy as np
-from typing import Iterable, Optional, Mapping
 
 from __future__ import annotations
 import pandas as pd
-from typing import Iterable, Sequence
-
-
 
 # Constants / Types
 AlgoDict = Dict[str, pd.DataFrame]

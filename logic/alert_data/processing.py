@@ -20,22 +20,7 @@ from typing import Any, Dict, Iterable, Mapping, Optional, Hashable
 import numpy as np
 import pandas as pd
 
-from constants import (
-    NAME,
-    DESCRIPTION,
-    TIME,
-    TIMESTAMP,
-    DATETIME_FORMAT,
-    BUY,
-    SELL,
-    EXIT,
-    PRICE,
-    PROFIT,
-    rPROFIT,
-    TRADE_TYPE,
-    QUANTITY,
-    AlgoDict,
-)
+from core.constants import settings
 
 
 # ==> Split the Data by the Strategy's name
@@ -62,10 +47,10 @@ def split_data_by_name(df: pd.DataFrame) -> Dict[Hashable, pd.DataFrame]:
     KeyError
         If the `NAME` column is not present in ``df``.
     """
-    if NAME not in df.columns:
-        raise KeyError(f"Expected column {NAME!r} in DataFrame")
+    if settings.NAME not in df.columns:
+        raise KeyError(f"Expected column {settings.NAME!r} in DataFrame")
 
-    grouped_data = df.groupby(NAME)
+    grouped_data = df.groupby(settings.NAME)
     return {name: group.copy() for name, group in grouped_data}
 
 
@@ -95,12 +80,12 @@ def extract_json_from_description(df: pd.DataFrame) -> pd.DataFrame:
     - Malformed JSON strings are treated as empty objects and do not raise an
       exception; this keeps pipeline processing robust.
     """
-    if DESCRIPTION not in df.columns or NAME not in df.columns:
-        raise KeyError(f"Expected columns {DESCRIPTION!r} and {NAME!r} in DataFrame")
+    if settings.DESCRIPTION not in df.columns or settings.NAME not in df.columns:
+        raise KeyError(f"Expected columns {settings.DESCRIPTION!r} and {settings.NAME!r} in DataFrame")
 
     json_records: list[Dict[str, Any]] = []
     for idx, row in df.iterrows():
-        raw = row.get(DESCRIPTION, "")
+        raw = row.get(settings.DESCRIPTION, "")
         try:
             obj = json.loads(raw) if isinstance(raw, str) and raw.strip() else {}
         except json.JSONDecodeError:
@@ -111,23 +96,23 @@ def extract_json_from_description(df: pd.DataFrame) -> pd.DataFrame:
     json_df = pd.json_normalize(json_records)
 
     # Attach name and timestamp columns from the original DataFrame.
-    json_df[NAME] = df[NAME].values
+    json_df[settings.NAME] = df[settings.NAME].values
     # Use TIME column if present, otherwise fall back to existing TIMESTAMP column
-    if TIME in df.columns:
-        json_df[TIMESTAMP] = df[TIME].values
+    if settings.TIME in df.columns:
+        json_df[settings.TIMESTAMP] = df[settings.TIME].values
     else:
         # If no TIME column, try to use an existing TIMESTAMP column or index
-        if TIMESTAMP in df.columns:
-            json_df[TIMESTAMP] = df[TIMESTAMP].values
+        if settings.TIMESTAMP in df.columns:
+            json_df[settings.TIMESTAMP] = df[settings.TIMESTAMP].values
         else:
-            json_df[TIMESTAMP] = df.index.astype(str)
+            json_df[settings.TIMESTAMP] = df.index.astype(str)
 
     return json_df
 
 
 # ==> Set Timestamp as Index and Format Timestamp Col
 def format_timestamp_column_and_set_as_index(
-    df: pd.DataFrame, col_name: str = TIMESTAMP
+    df: pd.DataFrame, col_name: str = settings.TIMESTAMP
 ) -> pd.DataFrame:
     """Return a copy of ``df`` indexed by a parsed timestamp column.
 
@@ -162,7 +147,7 @@ def format_timestamp_column_and_set_as_index(
     out = df.copy()
     timestamp_col = out[col_name]
     out.index = pd.to_datetime(timestamp_col)
-    out[col_name] = out.index.strftime(DATETIME_FORMAT)
+    out[col_name] = out.index.strftime(settings.DATETIME_FORMAT)
     out.sort_index(inplace=True)
     return out
 
@@ -242,9 +227,9 @@ def trim_to_closed_trades(
 def apply_flips(
     df: pd.DataFrame,
     *,
-    signal_col: str = TRADE_TYPE,
-    buy_token: str = BUY,
-    sell_token: str = SELL,
+    signal_col: str = settings.TRADE_TYPE,
+    buy_token: str = settings.BUY,
+    sell_token: str = settings.SELL,
     strip_whitespace: bool = True,
 ) -> pd.DataFrame:
     """Return a copy of ``df`` where buy/sell entry tokens are flipped.
@@ -292,11 +277,11 @@ def apply_flips(
 def add_trade_profit(
     df: pd.DataFrame,
     *,
-    price_col: str = PRICE,
-    signal_col: str = TRADE_TYPE,
+    price_col: str = settings.PRICE,
+    signal_col: str = settings.TRADE_TYPE,
     entry_values: Mapping[str, int] | None = None,
-    exit_value: str = EXIT,
-    qty_col: Optional[str] = QUANTITY,
+    exit_value: str = settings.EXIT,
+    qty_col: Optional[str] = settings.QUANTITY,
     multiplier: float = 1.0,
     delta: float = 1.0,
     fee_per_trade: float = 0.0,
@@ -351,7 +336,7 @@ def add_trade_profit(
         raise KeyError(f"Missing qty column {qty_col!r}")
 
     if entry_values is None:
-        entry_values = {BUY: +1, SELL: -1}
+        entry_values = {settings.BUY: +1, settings.SELL: -1}
 
     work = df.sort_index() if sort_by_index else df.copy()
     sig = work[signal_col].astype(str).str.strip().str.lower()
@@ -398,12 +383,12 @@ def add_trade_profit(
                 direction = 0
 
     out = work.copy()
-    out[PROFIT] = profits
-    out[rPROFIT] = out[PROFIT].cumsum()
+    out[settings.PROFIT] = profits
+    out[settings.rPROFIT] = out[settings.PROFIT].cumsum()
     return out
 
 
-def _process_and_split_data(df: pd.DataFrame) -> AlgoDict:
+def _process_and_split_data(df: pd.DataFrame) -> settings.AlgoDict:
     """Internal helper: process input alerts and return a mapping of algorithm -> rows.
 
     This wraps the higher-level pipeline (`clean_filterable_json_df_pipe`) and
@@ -412,7 +397,7 @@ def _process_and_split_data(df: pd.DataFrame) -> AlgoDict:
     other groups.
     """
     split_data = split_data_by_name(df)
-    output_dict: AlgoDict = {}
+    output_dict: settings.AlgoDict = {}
     for name, group in split_data.items():
         try:
             output_dict[name] = clean_filterable_json_df_pipe(group)
@@ -421,7 +406,7 @@ def _process_and_split_data(df: pd.DataFrame) -> AlgoDict:
     return output_dict
 
 
-def process_and_split_data(df: pd.DataFrame) -> AlgoDict:
+def process_and_split_data(df: pd.DataFrame) -> settings.AlgoDict:
     """Public wrapper around ``_process_and_split_data``.
 
     Kept as a separate function to provide a stable public API for callers and

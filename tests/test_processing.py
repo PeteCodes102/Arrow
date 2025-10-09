@@ -1,10 +1,8 @@
-import numpy as np
 import pandas as pd
 import pytest
 
 import importlib.util
 import pathlib
-import sys
 
 # Load the processing module directly by file path to avoid importing logic.__init__ during pytest collection
 _proc_path = pathlib.Path(__file__).resolve().parents[1] / 'logic' / 'alert_data' / 'processing.py'
@@ -13,7 +11,7 @@ _processing = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_processing)  # type: ignore[arg-type]
 proc = _processing
 
-from constants import DESCRIPTION, NAME, TIME, TIMESTAMP, TRADE_TYPE, PRICE, QUANTITY, PROFIT, rPROFIT
+from core.constants import DESCRIPTION, NAME, TIME, TIMESTAMP, TRADE_TYPE, PRICE, QUANTITY, PROFIT, rPROFIT
 
 
 def test_extract_json_from_description_handles_malformed_and_empty():

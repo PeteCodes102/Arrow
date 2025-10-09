@@ -1,7 +1,7 @@
 import pytest
 from datetime import date
 
-from models import FilterParams
+from models.filters import FilterParams
 
 
 def test_time_normalization_and_pair_required():
