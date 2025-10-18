@@ -20,7 +20,7 @@ from typing import Any, Dict, Iterable, Mapping, Optional, Hashable
 import numpy as np
 import pandas as pd
 
-from core.constants import settings
+from core.constants import *
 
 
 # ==> Split the Data by the Strategy's name
@@ -47,10 +47,11 @@ def split_data_by_name(df: pd.DataFrame) -> Dict[Hashable, pd.DataFrame]:
     KeyError
         If the `NAME` column is not present in ``df``.
     """
-    if settings.NAME not in df.columns:
-        raise KeyError(f"Expected column {settings.NAME!r} in DataFrame")
+    if k.NAME.lower() not in df.columns:
+        print(df.columns)
+        raise KeyError(f"Expected column {k.NAME!r} in DataFrame")
 
-    grouped_data = df.groupby(settings.NAME)
+    grouped_data = df.groupby(k.NAME.lower())
     return {name: group.copy() for name, group in grouped_data}
 
 
@@ -80,14 +81,17 @@ def extract_json_from_description(df: pd.DataFrame) -> pd.DataFrame:
     - Malformed JSON strings are treated as empty objects and do not raise an
       exception; this keeps pipeline processing robust.
     """
-    if settings.DESCRIPTION not in df.columns or settings.NAME not in df.columns:
-        raise KeyError(f"Expected columns {settings.DESCRIPTION!r} and {settings.NAME!r} in DataFrame")
+    if k.DESCRIPTION not in df.columns or k.NAME not in df.columns:
+        raise KeyError(f"Expected columns {k.DESCRIPTION!r} and {k.NAME!r} in DataFrame")
 
     json_records: list[Dict[str, Any]] = []
     for idx, row in df.iterrows():
-        raw = row.get(settings.DESCRIPTION, "")
+        raw = row.get(k.DESCRIPTION, "")
+        name = row.get(k.NAME, "No Name")
         try:
             obj = json.loads(raw) if isinstance(raw, str) and raw.strip() else {}
+            obj[k.NAME] = name  # ensure name is always present
+
         except json.JSONDecodeError:
             # Malformed JSON -> treat as empty dict to avoid failing the whole batch
             obj = {}
@@ -96,23 +100,23 @@ def extract_json_from_description(df: pd.DataFrame) -> pd.DataFrame:
     json_df = pd.json_normalize(json_records)
 
     # Attach name and timestamp columns from the original DataFrame.
-    json_df[settings.NAME] = df[settings.NAME].values
+    json_df[k.NAME] = df[k.NAME].values
     # Use TIME column if present, otherwise fall back to existing TIMESTAMP column
-    if settings.TIME in df.columns:
-        json_df[settings.TIMESTAMP] = df[settings.TIME].values
+    if k.TIME in df.columns:
+        json_df[k.TIMESTAMP] = df[k.TIME].values
     else:
         # If no TIME column, try to use an existing TIMESTAMP column or index
-        if settings.TIMESTAMP in df.columns:
-            json_df[settings.TIMESTAMP] = df[settings.TIMESTAMP].values
+        if k.TIMESTAMP in df.columns:
+            json_df[k.TIMESTAMP] = df[k.TIMESTAMP].values
         else:
-            json_df[settings.TIMESTAMP] = df.index.astype(str)
+            json_df[k.TIMESTAMP] = df.index.astype(str)
 
     return json_df
 
 
 # ==> Set Timestamp as Index and Format Timestamp Col
 def format_timestamp_column_and_set_as_index(
-    df: pd.DataFrame, col_name: str = settings.TIMESTAMP
+    df: pd.DataFrame, col_name: str = k.TIMESTAMP
 ) -> pd.DataFrame:
     """Return a copy of ``df`` indexed by a parsed timestamp column.
 
@@ -147,7 +151,7 @@ def format_timestamp_column_and_set_as_index(
     out = df.copy()
     timestamp_col = out[col_name]
     out.index = pd.to_datetime(timestamp_col)
-    out[col_name] = out.index.strftime(settings.DATETIME_FORMAT)
+    out[col_name] = out.index.strftime(k.DATETIME_FORMAT)
     out.sort_index(inplace=True)
     return out
 
@@ -227,9 +231,9 @@ def trim_to_closed_trades(
 def apply_flips(
     df: pd.DataFrame,
     *,
-    signal_col: str = settings.TRADE_TYPE,
-    buy_token: str = settings.BUY,
-    sell_token: str = settings.SELL,
+    signal_col: str = k.TRADE_TYPE,
+    buy_token: str = k.BUY,
+    sell_token: str = k.SELL,
     strip_whitespace: bool = True,
 ) -> pd.DataFrame:
     """Return a copy of ``df`` where buy/sell entry tokens are flipped.
@@ -277,11 +281,11 @@ def apply_flips(
 def add_trade_profit(
     df: pd.DataFrame,
     *,
-    price_col: str = settings.PRICE,
-    signal_col: str = settings.TRADE_TYPE,
+    price_col: str = k.PRICE,
+    signal_col: str = k.TRADE_TYPE,
     entry_values: Mapping[str, int] | None = None,
-    exit_value: str = settings.EXIT,
-    qty_col: Optional[str] = settings.QUANTITY,
+    exit_value: str = k.EXIT,
+    qty_col: Optional[str] = k.QUANTITY,
     multiplier: float = 1.0,
     delta: float = 1.0,
     fee_per_trade: float = 0.0,
@@ -336,7 +340,7 @@ def add_trade_profit(
         raise KeyError(f"Missing qty column {qty_col!r}")
 
     if entry_values is None:
-        entry_values = {settings.BUY: +1, settings.SELL: -1}
+        entry_values = {k.BUY: +1, k.SELL: -1}
 
     work = df.sort_index() if sort_by_index else df.copy()
     sig = work[signal_col].astype(str).str.strip().str.lower()
@@ -383,12 +387,12 @@ def add_trade_profit(
                 direction = 0
 
     out = work.copy()
-    out[settings.PROFIT] = profits
-    out[settings.rPROFIT] = out[settings.PROFIT].cumsum()
+    out[k.PROFIT] = profits
+    out[k.rPROFIT] = out[k.PROFIT].cumsum()
     return out
 
 
-def _process_and_split_data(df: pd.DataFrame) -> settings.AlgoDict:
+def _process_and_split_data(df: pd.DataFrame) -> k.AlgoDict:
     """Internal helper: process input alerts and return a mapping of algorithm -> rows.
 
     This wraps the higher-level pipeline (`clean_filterable_json_df_pipe`) and
@@ -397,7 +401,7 @@ def _process_and_split_data(df: pd.DataFrame) -> settings.AlgoDict:
     other groups.
     """
     split_data = split_data_by_name(df)
-    output_dict: settings.AlgoDict = {}
+    output_dict: k.AlgoDict = {}
     for name, group in split_data.items():
         try:
             output_dict[name] = clean_filterable_json_df_pipe(group)
@@ -406,7 +410,7 @@ def _process_and_split_data(df: pd.DataFrame) -> settings.AlgoDict:
     return output_dict
 
 
-def process_and_split_data(df: pd.DataFrame) -> settings.AlgoDict:
+def process_and_split_data(df: pd.DataFrame) -> k.AlgoDict:
     """Public wrapper around ``_process_and_split_data``.
 
     Kept as a separate function to provide a stable public API for callers and

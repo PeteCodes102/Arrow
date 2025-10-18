@@ -1,7 +1,8 @@
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Literal, Optional, Dict, Type, ClassVar
 import datetime as dt
+
 
 class Settings(BaseSettings):
     """
@@ -16,7 +17,9 @@ class Settings(BaseSettings):
     TIME_FORMAT: str = Field('%H:%M:%S', description='Time format string')
     DATETIME_FORMAT: str = Field('%Y-%m-%d %H:%M:%S', description='Datetime format string')
 
-    NAME: str = Field('Name', description='Alert name column')
+    TICKER: str = Field('Ticker', description='Ticker column')
+    CONTRACT: str = Field('contract', description='Contract column')
+    NAME: str = Field('Name', description='Alert name column', alias="name")
     DESCRIPTION: str = Field('Description', description='Alert description column')
     TIME: str = Field('Time', description='Alert time column')
     TIMESTAMP: str = Field('timestamp', description='Timestamp column')
@@ -35,35 +38,38 @@ class Settings(BaseSettings):
 
     # .env file configuration
     MONGO_DB_CONNECTION_STRING: Optional[str] = Field(None, description='MongoDB connection string from environment')
-    MONGO_DB_NAME: Optional[str] = Field(None, description='MongoDB database name from environment')
+    MONGO_DB_NAME: Optional[str] = Field('alertDb', description='MongoDB database name from environment')
     MONGO_COLLECTION_NAME: Optional[str] = Field(None, description='MongoDB collection name')
 
+    model_config = SettingsConfigDict(
+        env_file='../.env',
+        env_file_encoding='utf-8',
+        arbitrary_types_allowed=True,
+        validate_assignment=True,
+        extra='allow'
+    )
 
-    class Config:
-        env_file = '../.env'
-        env_file_encoding = 'utf-8'
 
+k = Settings()
 
-settings = Settings()
+BUY = k.BUY
+SELL = k.SELL
+EXIT = k.EXIT
 
-BUY = settings.BUY
-SELL = settings.SELL
-EXIT = settings.EXIT
+DATE_FORMAT = k.DATE_FORMAT
+TIME_FORMAT = k.TIME_FORMAT
+DATETIME_FORMAT = k.DATETIME_FORMAT
+NAME = k.NAME
+DESCRIPTION = k.DESCRIPTION
+TIME = k.TIME
+TIMESTAMP = k.TIMESTAMP
 
-DATE_FORMAT = settings.DATE_FORMAT
-TIME_FORMAT = settings.TIME_FORMAT
-DATETIME_FORMAT = settings.DATETIME_FORMAT
-NAME = settings.NAME
-DESCRIPTION = settings.DESCRIPTION
-TIME = settings.TIME
-TIMESTAMP = settings.TIMESTAMP
-
-PRICE = settings.PRICE
-PROFIT = settings.PROFIT
-rPROFIT = settings.rPROFIT
-TRADE_TYPE = settings.TRADE_TYPE
-QUANTITY = settings.QUANTITY
-TradeType = settings.TradeType
-SecretKey = settings.SecretKey
-Timestamp = settings.Timestamp
-AlgoDict = settings.AlgoDict
+PRICE = k.PRICE
+PROFIT = k.PROFIT
+rPROFIT = k.rPROFIT
+TRADE_TYPE = k.TRADE_TYPE
+QUANTITY = k.QUANTITY
+TradeType = k.TradeType
+SecretKey = k.SecretKey
+Timestamp = k.Timestamp
+AlgoDict = k.AlgoDict

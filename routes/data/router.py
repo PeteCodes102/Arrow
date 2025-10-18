@@ -1,7 +1,8 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from .schemas import AlertCreate, AlertRead, AlertUpdate
+from models.filters import FilterParams
+from .schemas import AlertCreate, AlertRead, AlertUpdate, AlertQuery, ChartData
 from .service import DataService, get_service
 
 data_router = APIRouter(prefix="/data", tags=["data"])
@@ -22,6 +23,13 @@ async def get_data(item_id: str, service: DataService = Depends(get_service)):
     if item is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Data not found")
     return item
+
+@data_router.get("/strategy-names/all", response_model=List[str])
+async def get_strategy_names(service: DataService = Depends(get_service)):
+    """
+    Get unique strategy names from data items.
+    """
+    return await service.get_strategy_names()
 
 @data_router.post("/", response_model=AlertRead, status_code=status.HTTP_201_CREATED)
 async def create_data(payload: AlertCreate, service: DataService = Depends(get_service)):
@@ -49,3 +57,11 @@ async def delete_data(item_id: str, service: DataService = Depends(get_service))
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Data not found")
     return None
+
+@data_router.post("/chart/filters", response_model=ChartData)
+async def get_chart_data(filters: FilterParams, service: DataService = Depends(get_service)):
+    """
+    Get data formatted for charting.
+    """
+    chart_json = await service.generate_chart(filters)
+    return {"chart_json": chart_json}

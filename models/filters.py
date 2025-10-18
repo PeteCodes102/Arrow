@@ -55,7 +55,7 @@ class FilterParams(BaseModel):
     -------
     p = FilterParams(start_time="9:30", end_time="16:00", days=["mon", "tue"], weeks=[1,2])
     """
-
+    name: Optional[str] = Field(None, description="Strategy name to filter by")
     start_time: Optional[str] = Field(None, description="Start time in HH:MM (24h) format")
     end_time: Optional[str] = Field(None, description="End time in HH:MM (24h) format")
     days: Optional[List[Union[str, int]]] = Field(

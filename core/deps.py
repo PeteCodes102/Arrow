@@ -8,7 +8,7 @@
 #
 # def get_data_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> DataService:
 #     return DataService(MotorDataRepo(db))
-
+import pandas as pd
 from fastapi import Depends, Request
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from routes.data import DataService, DataRepository
@@ -21,3 +21,5 @@ def get_db(request: Request) -> AsyncIOMotorDatabase:
 async def get_service() -> DataService:
     repo = DataRepository()
     return DataService(repo)
+
+

@@ -4,14 +4,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import pytest
 import pandas as pd
-from logic.alert_data import filters, helpers, processing, utils
-from logic.plotting import pnl
+from core.logic.alert_data import utils, filters, processing
+from core.logic.plotting import pnl
 
 # Utility to load test data
 CSV_PATH = os.path.join(os.path.dirname(__file__), '..', 'tv_alerts.csv')
 
 def load_test_df():
-    return helpers.load_data_from_csv(CSV_PATH)
+    return utils.load_data_from_csv(CSV_PATH)
 
 # --- FILTERS ---
 def test_parse_hhmm():
@@ -40,7 +40,7 @@ def test_filter_by_days_of_week():
 def test_filter_by_weeks_of_month():
     df = load_test_df()
     df = processing.format_timestamp_column_and_set_as_index(df, col_name='Time')
-    filtered = filters.filter_by_weeks_of_month(df, [1,2,3,4,5])
+    filtered = filters.filter_by_weeks_of_month(df, [1, 2, 3, 4, 5])
     assert isinstance(filtered, pd.DataFrame)
     assert filtered.shape[0] > 0
 
@@ -109,7 +109,7 @@ def test_filter_by_date_range_invalid():
 
 # --- HELPERS ---
 def test_load_data_from_csv():
-    df = helpers.load_data_from_csv(CSV_PATH)
+    df = utils.load_data_from_csv(CSV_PATH)
     assert isinstance(df, pd.DataFrame)
     assert df.shape[0] > 0
 

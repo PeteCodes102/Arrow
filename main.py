@@ -7,21 +7,28 @@ from db.base import init_db
 from routes.data import data_router
 from typing import Any, cast
 
-from core.constants import settings
+from models.alerts import BaseAlert
+from decouple import config
+
+DB_URL = config('MONGO_DB_CONNECTION_STRING')
+DB_NAME = config('MONGO_DB_NAME')
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup code here (e.g., connect to DB)
-    app.client = init_db(settings.MONGO_DB_CONNECTION_STRING, settings.MONGO_DB_NAME)
+    app.client = await init_db(DB_URL, DB_NAME, models=[BaseAlert])
+
     yield
     # Shutdown code here (e.g., close DB connection)
     app.client.close()
 
-app = FastAPI(title="FARM API")
+app = FastAPI(title="FARM API", lifespan=lifespan)
 
-# Allow your React dev server to hit the API
-app.add_middleware(cast(Any, FastAPICORSMiddleware),
-    allow_origins=["*"],  # adjust as needed
+# CORS: allow React dev server only
+app.add_middleware(
+    FastAPICORSMiddleware,
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

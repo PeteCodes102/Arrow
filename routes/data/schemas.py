@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Literal
+from typing import Optional, Literal, Any, Dict
 import datetime as dt
 
 class AlertBase(BaseModel):
@@ -9,8 +9,11 @@ class AlertBase(BaseModel):
     price: float = Field(..., gt=0, description="Price at which the trade was executed")
     secret_key: Optional[str] = Field(None, description="Optional secret key for authentication")
     timestamp: Optional[dt.datetime] = Field(None, description="Timestamp of the alert")
+    Name: Optional[str] = Field(None, description="Alert name", alias="name")
 
 class AlertCreate(AlertBase):
+    user_id: Optional[str] = Field(None, description="Optional user identifier")
+    spam_key: Optional[str] = Field(None, description="Optional spam key for rate limiting", alias="spam-key")
     pass
 
 class AlertUpdate(BaseModel):
@@ -26,3 +29,12 @@ class AlertRead(AlertBase):
 
     class Config:
         from_attributes = True
+
+class AlertQuery(BaseModel):
+    user_id: Optional[str] = None
+    strategy_name: Optional[str] = None
+    options: Optional[dict] = None  # For easy customization of future query fields
+
+class ChartData(BaseModel):
+    # You can customize this schema to match your chart data structure
+    chart_json: Dict[str, Any]

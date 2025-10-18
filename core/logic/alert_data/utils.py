@@ -1,11 +1,41 @@
 import pandas as pd
 
-from logic.alert_data.filters import *
-from logic.alert_data.processing import *
+from core.logic.alert_data.filters import *
+from core.constants import *
+from core.logic.alert_data.processing import extract_json_from_description, format_timestamp_column_and_set_as_index, \
+    trim_to_closed_trades, process_and_split_data, add_trade_profit, apply_flips
 
+
+# load trading view alert data
+def load_data_from_csv(file_path: str) -> pd.DataFrame:
+  """
+  Loads data from a CSV file into a pandas DataFrame.
+
+  Args:
+    file_path: The path to the CSV file.
+
+  Returns:
+    A pandas DataFrame containing the data from the CSV file.
+  """
+  data = pd.read_csv(file_path)
+  data.dropna(inplace=True)
+  return data
+
+
+def load_data_from_csv_util(file_path: str) -> pd.DataFrame:
+    """
+    Loads data from a CSV file into a pandas DataFrame.
+
+    Args:
+        file_path (str): The path to the CSV file.
+    Returns:
+        pd.DataFrame: A pandas DataFrame containing the data from the CSV file.
+    """
+    master_df = load_data_from_csv(file_path)
+    return extract_json_from_description(master_df)
 
 # ==> Filterable, Clean Json DataFrame Pipe
-def clean_filterable_json_df_pipe(df: pd.DataFrame) -> pd.DataFrame:
+def clean_filterable_json_df_pipe(df: pd.DataFrame, extracted: bool = False) -> pd.DataFrame:
     """
     Create a normalized, time-indexed DataFrame ready for trade processing.
 
@@ -16,6 +46,7 @@ def clean_filterable_json_df_pipe(df: pd.DataFrame) -> pd.DataFrame:
 
     Parameters:
         df (pd.DataFrame): Raw alerts DataFrame.
+        extracted (bool): If True, assumes JSON has already been extracted from Description.
 
     Returns:
         pd.DataFrame: Processed DataFrame ready for P&L or plotting operations.
@@ -26,13 +57,15 @@ def clean_filterable_json_df_pipe(df: pd.DataFrame) -> pd.DataFrame:
 
     df = df.copy()
 
-    # extract the description column and make into its own dataframe
-    json_df = extract_json_from_description(df)
+    if not extracted:
+        # extract the description column and make into its own dataframe
+        df = extract_json_from_description(df)
 
     # set the timestamp as the index and format it
-    fmt_ts_df = format_timestamp_column_and_set_as_index(json_df)
+    fmt_ts_df = format_timestamp_column_and_set_as_index(df)
 
     return trim_to_closed_trades(fmt_ts_df)
+
 
 
 def get_filtered_split_data(df: pd.DataFrame, **kwargs) -> AlgoDict:
@@ -151,3 +184,4 @@ def get_profit_df_by_name(master_df: pd.DataFrame, name: str, delta: float, mult
     df = split_data[name]
 
     return apply_filters_and_profit(df, delta=delta, multiplier=multiplier, flip=flip, **kwargs)
+

@@ -184,7 +184,7 @@ def main():
                 if not existing:
                     return None
                 data = existing.model_dump()
-                data.update({{k: v for k, v in payload.model_dump().items() if v is not None}})
+                data.update({{Settings: v for Settings, v in payload.model_dump().items() if v is not None}})
                 updated = {pascal}Read(**data)
                 self._items[item_id] = updated
                 return updated

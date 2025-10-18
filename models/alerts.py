@@ -2,6 +2,17 @@ from beanie import Document
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Literal, Optional, Dict
 import datetime as dt
+from pymongo import IndexModel
+from core.constants import k
+
+uniqueIndex = [
+    (k.CONTRACT, 1),
+    (k.TRADE_TYPE, 1),
+    (k.QUANTITY, 1),
+    (k.PRICE, 1),
+    (k.TIMESTAMP, 1),
+    (k.NAME, 1),
+]
 
 class BaseAlert(Document):
     """
@@ -21,23 +32,20 @@ class BaseAlert(Document):
     price: float = Field(..., gt=0, description="Price at which the trade was executed")
     secret_key: Optional[str] = Field(None, description="Optional secret key for authentication")
     timestamp: Optional[dt.datetime] = Field(None, description="Timestamp of the alert")
+    Name: Optional[str] = Field(None, description="Alert name", alias="name")
+
+    # All alerts are compatible with Quantview Alerts
+    userId: Optional[str] = Field(None, description="User identifier")
+    strategy: Optional[int] = Field(0, description="Strategy identifier")
+    spam_key: Optional[str] = Field(None, description="Spam key for filtering", alias="spam-key")
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-class QVStyleAlert(BaseAlert):
-    """
-    MongoDB document model for a QV-style trading alert, extending BaseAlert.
-
-    Fields:
-        userId (Optional[str]): User identifier.
-        strategy (Optional[int]): Strategy identifier (default 0).
-        spam_key (Optional[str]): Spam key for filtering (aliased as 'spam-key').
-    """
-    userId: Optional[str] = Field(..., description="User identifier")
-    strategy: Optional[int] = Field(0, description="Strategy identifier")
-    spam_key: Optional[str] = Field(..., description="Spam key for filtering", alias="spam-key")
-
-    def __init__(self, **data):
-        if 'trade_type' in data:
-            data['trade_type'] = data['trade_type'].lower()
-        super().__init__(**data)
+    class Settings:
+        name = "alerts"  # Collection name in MongoDB
+        indexes = [
+            IndexModel(
+                keys=uniqueIndex,
+                unique=True,
+            )
+        ]
