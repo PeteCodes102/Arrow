@@ -161,19 +161,28 @@ def filter_alert_data(df: pd.DataFrame, **kwargs) -> pd.DataFrame:
         # use regex to check the format matches HH:MM
         start_time = kwargs['start_time']
         end_time = kwargs['end_time']
-        output = filter_by_time_of_day(df, start_hhmm=start_time, end_hhmm=end_time)
+
+        if start_time is not None and end_time is not None:
+            output = filter_by_time_of_day(df, start_hhmm=start_time, end_hhmm=end_time)
 
     if 'days' in kwargs:
         days = kwargs['days']
-        output = filter_by_days_of_week(df, days=days)
+
+        if days is not None:
+            output = filter_by_days_of_week(df, days=days)
 
     if 'weeks' in kwargs:
         weeks = kwargs['weeks']
-        output = filter_by_weeks_of_month(df, weeks=weeks)
+
+        if weeks is not None and weeks != []:
+            print(weeks)
+            output = filter_by_weeks_of_month(df, weeks=weeks)
 
     if 'start_date' in kwargs and 'end_date' in kwargs:
         start_date = kwargs['start_date']
         end_date = kwargs['end_date']
-        output = filter_by_date_range(df, start_date=kwargs['start_date'], end_date=kwargs['end_date'])
+
+        if start_date is not None and end_date is not None:
+            output = filter_by_date_range(df, start_date=start_date, end_date=end_date)
 
     return output

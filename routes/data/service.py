@@ -37,7 +37,7 @@ class DataService:
         data = await self.repo.list()
         df = await db_data_to_df(data)
         chart_fig = await filtered_data_chart(df, "QGRID Elite - MNQ1! 1s Renko 2b ...", delta=5.0, flip=False, **filters.model_dump(exclude="name"))
-        return chart_fig.to_json()
+        return chart_fig.to_dict()
     
     async def get_strategy_names(self) -> List[str]:
         data = await self.repo.list()

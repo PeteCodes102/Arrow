@@ -156,29 +156,7 @@ def format_timestamp_column_and_set_as_index(
     return out
 
 
-# ==> Filterable, Clean JSON DataFrame Pipe
-def clean_filterable_json_df_pipe(df: pd.DataFrame) -> pd.DataFrame:
-    """Create a normalized, time-indexed DataFrame ready for trade processing.
 
-    Steps performed (in order):
-    1. Extract JSON payloads from the ``DESCRIPTION`` column.
-    2. Normalize the timestamps and set them as the DataFrame index.
-    3. Trim the result so the first row is an entry signal and the last row is
-       a subsequent exit (prevents open trades from contaminating results).
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Raw alerts DataFrame.
-
-    Returns
-    -------
-    pd.DataFrame
-        Processed DataFrame ready for P&L or plotting operations.
-    """
-    json_df = extract_json_from_description(df)
-    fmt_ts_df = format_timestamp_column_and_set_as_index(json_df)
-    return trim_to_closed_trades(fmt_ts_df)
 
 
 # ==> Trim Data to Closed Trades
@@ -390,6 +368,36 @@ def add_trade_profit(
     out[k.PROFIT] = profits
     out[k.rPROFIT] = out[k.PROFIT].cumsum()
     return out
+
+# ==> Filterable, Clean JSON DataFrame Pipe
+def clean_filterable_json_df_pipe(df: pd.DataFrame) -> pd.DataFrame:
+    """Create a normalized, time-indexed DataFrame ready for trade processing.
+
+    Steps performed (in order):
+    1. Extract JSON payloads from the ``DESCRIPTION`` column.
+    2. Normalize the timestamps and set them as the DataFrame index.
+    3. Trim the result so the first row is an entry signal and the last row is
+       a subsequent exit (prevents open trades from contaminating results).
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Raw alerts DataFrame.
+
+    Returns
+    -------
+    pd.DataFrame
+        Processed DataFrame ready for P&L or plotting operations.
+    """
+    try:
+        json_df = extract_json_from_description(df)
+    except KeyError as e:
+        print(f"Error extracting JSON from description: {e}")
+        print("Attempting to proceed with original DataFrame...")
+        json_df = df.copy()
+
+    fmt_ts_df = format_timestamp_column_and_set_as_index(json_df)
+    return trim_to_closed_trades(fmt_ts_df)
 
 
 def _process_and_split_data(df: pd.DataFrame) -> k.AlgoDict:

@@ -3,12 +3,11 @@ import pandas as pd
 from core.logic.alert_data.filters import *
 from core.constants import *
 from core.logic.alert_data.processing import extract_json_from_description, format_timestamp_column_and_set_as_index, \
-    trim_to_closed_trades, process_and_split_data, add_trade_profit, apply_flips
-
+    trim_to_closed_trades, process_and_split_data, add_trade_profit, apply_flips, clean_filterable_json_df_pipe
 
 # load trading view alert data
 def load_data_from_csv(file_path: str) -> pd.DataFrame:
-  """
+    """
   Loads data from a CSV file into a pandas DataFrame.
 
   Args:
@@ -17,9 +16,9 @@ def load_data_from_csv(file_path: str) -> pd.DataFrame:
   Returns:
     A pandas DataFrame containing the data from the CSV file.
   """
-  data = pd.read_csv(file_path)
-  data.dropna(inplace=True)
-  return data
+    data = pd.read_csv(file_path)
+    data.dropna(inplace=True)
+    return data
 
 
 def load_data_from_csv_util(file_path: str) -> pd.DataFrame:
@@ -34,38 +33,6 @@ def load_data_from_csv_util(file_path: str) -> pd.DataFrame:
     master_df = load_data_from_csv(file_path)
     return extract_json_from_description(master_df)
 
-# ==> Filterable, Clean Json DataFrame Pipe
-def clean_filterable_json_df_pipe(df: pd.DataFrame, extracted: bool = False) -> pd.DataFrame:
-    """
-    Create a normalized, time-indexed DataFrame ready for trade processing.
-
-    Steps performed (in order):
-    1. Extract JSON payloads from the Description column.
-    2. Normalize the timestamps and set them as the DataFrame index.
-    3. Trim the result so the first row is an entry signal and the last row is a subsequent exit.
-
-    Parameters:
-        df (pd.DataFrame): Raw alerts DataFrame.
-        extracted (bool): If True, assumes JSON has already been extracted from Description.
-
-    Returns:
-        pd.DataFrame: Processed DataFrame ready for P&L or plotting operations.
-    """
-
-    # copy the data
-
-
-    df = df.copy()
-
-    if not extracted:
-        # extract the description column and make into its own dataframe
-        df = extract_json_from_description(df)
-
-    # set the timestamp as the index and format it
-    fmt_ts_df = format_timestamp_column_and_set_as_index(df)
-
-    return trim_to_closed_trades(fmt_ts_df)
-
 
 
 def get_filtered_split_data(df: pd.DataFrame, **kwargs) -> AlgoDict:
@@ -79,7 +46,6 @@ def get_filtered_split_data(df: pd.DataFrame, **kwargs) -> AlgoDict:
     Returns:
         AlgoDict: Dictionary mapping strategy name to filtered DataFrame.
     """
-
 
     split_data = process_and_split_data(df)
     return filter_split_data(split_data, **kwargs)
@@ -97,7 +63,6 @@ def filter_split_data(split_data: dict[str, pd.DataFrame], **kwargs) -> dict[str
     Returns:
         dict[str, pd.DataFrame]: Dictionary mapping strategy name to filtered DataFrame.
     """
-
 
     output_dict = {}
     for name, df in split_data.items():
@@ -122,7 +87,6 @@ def add_profit_and_fmt(df: pd.DataFrame, delta: float, multiplier: float) -> pd.
         pd.DataFrame: DataFrame containing only exit trades with profit columns.
     """
 
-
     df = df.copy()
     profit_df = add_trade_profit(df, delta=delta, multiplier=multiplier)
 
@@ -144,7 +108,6 @@ def apply_filters_and_profit(df: pd.DataFrame, delta: float, multiplier: float, 
     Returns:
         pd.DataFrame: DataFrame containing only exit trades with profit columns.
     """
-
 
     df = df.copy()
     filterable_json_df = clean_filterable_json_df_pipe(df)
@@ -175,13 +138,11 @@ def get_profit_df_by_name(master_df: pd.DataFrame, name: str, delta: float, mult
     Raises:
         ValueError: If the specified name is not found in the data.
     """
-
-
     split_data = process_and_split_data(master_df)
+    print(f"Available names in data: {list(split_data.keys())}")
     if name not in split_data:
         raise ValueError(f"Name '{name}' not found in data.")
 
     df = split_data[name]
 
     return apply_filters_and_profit(df, delta=delta, multiplier=multiplier, flip=flip, **kwargs)
-
