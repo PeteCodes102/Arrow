@@ -26,7 +26,7 @@ class BaseAlert(BaseModel):
     price: float = Field(..., gt=0, description="Price at which the trade was executed")
     secret_key: Optional[str] = Field(None, description="Optional secret key for authentication")
     timestamp: Optional[dt.datetime] = Field(None, description="Timestamp of the alert")
-    Name: Optional[str] = Field(..., description="Alert name", alias="name")
+    name: Optional[str] = Field(..., description="Alert name", alias="Name")
 
     # All alerts are compatible with Quantview Alerts
     userId: Optional[str] = Field(None, description="User identifier")
