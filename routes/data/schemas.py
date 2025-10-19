@@ -1,15 +1,21 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, AliasChoices, ConfigDict
 from typing import Optional, Literal, Any, Dict
 import datetime as dt
 
 class AlertBase(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     contract: str = Field(..., description="Contract identifier, e.g., 'NQ1!'")
     trade_type: Literal['buy', 'sell', 'exit'] = Field(..., description="Type of trade")
     quantity: int = Field(..., gt=0, description="Quantity of the trade")
     price: float = Field(..., gt=0, description="Price at which the trade was executed")
     secret_key: Optional[str] = Field(None, description="Optional secret key for authentication")
     timestamp: Optional[dt.datetime] = Field(None, description="Timestamp of the alert")
-    Name: Optional[str] = Field(None, description="Alert name", alias="name")
+    name: Optional[str] = Field(
+        default=None,
+        description="Alert name",
+        validation_alias=AliasChoices("name", "Name"),
+    )
 
 class AlertCreate(AlertBase):
     user_id: Optional[str] = Field(None, description="Optional user identifier")
@@ -17,12 +23,19 @@ class AlertCreate(AlertBase):
     pass
 
 class AlertUpdate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     contract: Optional[str] = Field(None, description="Contract identifier, e.g., 'NQ1!'")
     trade_type: Optional[Literal['buy', 'sell', 'exit']] = Field(None, description="Type of trade")
     quantity: Optional[int] = Field(None, gt=0, description="Quantity of the trade")
     price: Optional[float] = Field(None, gt=0, description="Price at which the trade was executed")
     secret_key: Optional[str] = Field(None, description="Optional secret key for authentication")
     timestamp: Optional[dt.datetime] = Field(None, description="Timestamp of the alert")
+    name: Optional[str] = Field(
+        default=None,
+        description="Alert name",
+        validation_alias=AliasChoices("name", "Name"),
+    )
 
 class AlertRead(AlertBase):
     id: str = Field(..., description="MongoDB document ID")

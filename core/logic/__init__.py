@@ -2,7 +2,7 @@ from typing import List, Any
 
 import pandas as pd
 
-from core.constants import rPROFIT
+from core.constants import rPROFIT, k
 from core.logic.alert_data.utils import *
 
 from core.logic.plotting.pnl import plot_trading_pnl
@@ -25,10 +25,13 @@ async def db_data_to_df(data: List[Any]) -> pd.DataFrame:
     # Normalize "Name"/"name" column variants because code in different modules
     # may check for either k.NAME ("Name") or k.NAME.lower() ("name"). Ensure both
     # exist so downstream processing doesn't KeyError unexpectedly.
-    if 'name' in df.columns and 'Name' not in df.columns:
-        df['Name'] = df['name']
-    elif 'Name' in df.columns and 'name' not in df.columns:
-        df['name'] = df['Name']
+    name_alias = k.NAME  # e.g. "Name"
+    normalized_name = name_alias.lower()
+
+    if normalized_name in df.columns and name_alias not in df.columns:
+        df[name_alias] = df[normalized_name]
+    elif name_alias in df.columns and normalized_name not in df.columns:
+        df[normalized_name] = df[name_alias]
 
     df.to_csv('all_data.csv', index=False)  # Save to CSV for inspection
     return df

@@ -1,5 +1,5 @@
 from beanie import Document
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import Field, ConfigDict, AliasChoices
 from typing import Literal, Optional, Dict
 import datetime as dt
 from pymongo import IndexModel
@@ -11,7 +11,7 @@ uniqueIndex = [
     (k.QUANTITY, 1),
     (k.PRICE, 1),
     (k.TIMESTAMP, 1),
-    (k.NAME, 1),
+    (k.NAME.lower(), 1),
 ]
 
 class BaseAlert(Document):
@@ -32,14 +32,21 @@ class BaseAlert(Document):
     price: float = Field(..., gt=0, description="Price at which the trade was executed")
     secret_key: Optional[str] = Field(None, description="Optional secret key for authentication")
     timestamp: Optional[dt.datetime] = Field(None, description="Timestamp of the alert")
-    Name: Optional[str] = Field(None, description="Alert name", alias="name")
+    name: Optional[str] = Field(
+        default=None,
+        description="Alert name",
+        validation_alias=AliasChoices("name", "Name"),
+    )
 
     # All alerts are compatible with Quantview Alerts
     userId: Optional[str] = Field(None, description="User identifier")
     strategy: Optional[int] = Field(0, description="Strategy identifier")
     spam_key: Optional[str] = Field(None, description="Spam key for filtering", alias="spam-key")
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        populate_by_name=True,
+    )
 
     class Settings:
         name = "alerts"  # Collection name in MongoDB
