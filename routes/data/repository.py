@@ -8,18 +8,30 @@ class DataRepository:
     """
     async def list(self) -> List[AlertRead]:
         docs = await BaseAlert.find_all().to_list()
-        return [AlertRead(id=str(doc.id), **doc.model_dump(exclude={'id'})) for doc in docs]
+        return [
+            AlertRead(
+                id=str(doc.id),
+                **doc.model_dump(by_alias=True, exclude={'id'}),
+            )
+            for doc in docs
+        ]
 
     async def get(self, item_id: str) -> Optional[AlertRead]:
         doc = await BaseAlert.get(item_id)
         if doc:
-            return AlertRead(id=str(doc.id), **doc.model_dump(exclude={'id'}))
+            return AlertRead(
+                id=str(doc.id),
+                **doc.model_dump(by_alias=True, exclude={'id'}),
+            )
         return None
 
     async def create(self, payload: AlertCreate) -> AlertRead:
-        doc = BaseAlert(**payload.model_dump())
+        doc = BaseAlert(**payload.model_dump(by_alias=True))
         await doc.insert()
-        return AlertRead(id=str(doc.id), **doc.model_dump(exclude={'id'}))
+        return AlertRead(
+            id=str(doc.id),
+            **doc.model_dump(by_alias=True, exclude={'id'}),
+        )
 
     async def update(self, item_id: str, payload: AlertUpdate) -> Optional[AlertRead]:
         doc = await BaseAlert.get(item_id)
@@ -29,7 +41,10 @@ class DataRepository:
         for k, v in update_data.items():
             setattr(doc, k, v)
         await doc.save()
-        return AlertRead(id=str(doc.id), **doc.model_dump(exclude={'id'}))
+        return AlertRead(
+            id=str(doc.id),
+            **doc.model_dump(by_alias=True, exclude={'id'}),
+        )
 
     async def delete(self, item_id: str) -> bool:
         doc = await BaseAlert.get(item_id)
@@ -47,4 +62,10 @@ class DataRepository:
         if query.options:
             filter_dict.update(query.options)
         docs = await BaseAlert.find(filter_dict).to_list()
-        return [AlertRead(id=str(doc.id), **doc.model_dump(exclude={'id'})) for doc in docs]
+        return [
+            AlertRead(
+                id=str(doc.id),
+                **doc.model_dump(by_alias=True, exclude={'id'}),
+            )
+            for doc in docs
+        ]
