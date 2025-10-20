@@ -1,4 +1,7 @@
+import json
 from typing import List, Optional
+
+from plotly.utils import PlotlyJSONEncoder
 
 from core.constants import k
 from core.logic import filtered_data_chart, db_data_to_df
@@ -6,6 +9,7 @@ from models.filters import FilterParams
 from .schemas import AlertCreate, AlertRead, AlertUpdate, AlertQuery
 from .repository import DataRepository
 from .helpers import alert_processing_pipeline
+
 
 class DataService:
     """
@@ -36,9 +40,17 @@ class DataService:
     async def generate_chart(self, filters: FilterParams):
         data = await self.repo.list()
         df = await db_data_to_df(data)
-        chart_fig = await filtered_data_chart(df, "QGRID Elite - MNQ1! 1s Renko 2b ...", delta=5.0, flip=False, **filters.model_dump(exclude="name"))
-        return chart_fig.to_dict()
-    
+        chart_fig = await filtered_data_chart(df, delta=5.0, flip=False, **filters.model_dump())
+
+        # Ensure chart_fig is a dict with a 'data' array
+        import plotly.io as pio
+        import json
+        chart_dict = pio.to_json(chart_fig, pretty=False)
+        chart_json = json.loads(chart_dict)
+        if 'data' not in chart_json:
+            chart_json['data'] = []
+        return chart_json
+
     async def get_strategy_names(self) -> List[str]:
         data = await self.repo.list()
         df = await db_data_to_df(data)

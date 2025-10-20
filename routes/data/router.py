@@ -1,5 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 
 from models.filters import FilterParams
 from .schemas import AlertCreate, AlertRead, AlertUpdate, AlertQuery, ChartData
@@ -58,10 +59,10 @@ async def delete_data(item_id: str, service: DataService = Depends(get_service))
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Data not found")
     return None
 
-@data_router.post("/chart/filters", response_model=ChartData)
+@data_router.post("/chart/filters")
 async def get_chart_data(filters: FilterParams, service: DataService = Depends(get_service)):
     """
     Get data formatted for charting.
     """
     chart_json = await service.generate_chart(filters)
-    return {"chart_json": chart_json}
+    return JSONResponse(content=chart_json)
