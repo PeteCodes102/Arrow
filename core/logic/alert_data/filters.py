@@ -168,7 +168,7 @@ def filter_alert_data(df: pd.DataFrame, **kwargs) -> pd.DataFrame:
     if 'days' in kwargs:
         days = kwargs['days']
 
-        if days is not None:
+        if days is not None and days != []:
             output = filter_by_days_of_week(df, days=days)
 
     if 'weeks' in kwargs:

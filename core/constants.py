@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     SecretKey: ClassVar = Optional[str]
     Timestamp: ClassVar = Optional[dt.datetime]
     AlgoDict: ClassVar = Dict[str, dt.datetime | str | float | int | TradeType]
+    SecretKeyIndex: ClassVar = Dict[str, str]
 
     # .env file configuration
     MONGO_DB_CONNECTION_STRING: Optional[str] = Field(None, description='MongoDB connection string from environment')
@@ -73,3 +74,4 @@ TradeType = k.TradeType
 SecretKey = k.SecretKey
 Timestamp = k.Timestamp
 AlgoDict = k.AlgoDict
+SecretKeyIndex = k.SecretKeyIndex

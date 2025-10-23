@@ -65,4 +65,11 @@ async def get_chart_data(filters: FilterParams, service: DataService = Depends(g
     Get data formatted for charting.
     """
     chart_json = await service.generate_chart(filters)
-    return JSONResponse(content=chart_json)
+    return {"chart_json": chart_json}
+
+@data_router.post("/{secret_key}", response_model=AlertRead, status_code=status.HTTP_201_CREATED)
+async def create_data_with_secret_key(secret_key: str, payload: AlertCreate, service: DataService = Depends(get_service)):
+    """
+    Create a new data item using a secret key to bind to a strategy name.
+    """
+    return await service.create_with_secret_key(secret_key, payload)

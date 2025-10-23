@@ -11,9 +11,10 @@ async def alert_processing_pipeline(payload: AlertCreate) -> AlertCreate:
     Adds a timestamp if not present.
     """
 
-
     if payload.timestamp is None:
         payload.timestamp = get_current_timestamp()
+
+
 
 
     # handle Quantview-style Alerts which have a user_id  and spam_key

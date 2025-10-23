@@ -45,3 +45,4 @@ def plot_trading_pnl(dates, pnl, title):
     )
 
     return fig
+
