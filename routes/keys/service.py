@@ -10,24 +10,26 @@ class KeysService:
     def __init__(self, repo: KeysRepository):
         self.repo = repo
 
-    def list(self) -> List[KeysRead]:
+    async def list(self) -> List[KeysRead]:
         return self.repo.list()
 
-    def get(self, item_id: int) -> Optional[KeysRead]:
+    async def get(self, item_id: int) -> Optional[KeysRead]:
         return self.repo.get(item_id)
 
-    def create(self, payload: KeysCreate) -> KeysRead:
+    async def create(self, payload: KeysCreate) -> KeysRead:
         return self.repo.create(payload)
 
-    def update(self, item_id: int, payload: KeysUpdate) -> Optional[KeysRead]:
+    async def update(self, item_id: int, payload: KeysUpdate) -> Optional[KeysRead]:
         return self.repo.update(item_id, payload)
 
-    def delete(self, item_id: int) -> bool:
+    async def delete(self, item_id: int) -> bool:
         return self.repo.delete(item_id)
 
-    def get_name_by_key(self, secret_key: str) -> Optional[str]:
+    async def get_name_by_key(self, secret_key: str) -> Optional[str]:
         # Optimized: query the repository for the item with the matching secret_key
-
+        secret_key_index = await self.repo.search(first=True, secret_key=secret_key)
+        if secret_key_index:
+            return secret_key_index.name
         return None
 
 # Simple dependency that you can wire into FastAPI with Depends(...)

@@ -15,7 +15,7 @@ class KeysUpdate(BaseModel):
     pass
 
 class KeysRead(KeysBase):
-    id: int = Field(..., description="Primary identifier")
+    id: str = Field(..., description="Primary identifier")
 
     class Config:
         from_attributes = True  # pydantic v2 ORM mode

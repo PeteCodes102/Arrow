@@ -11,7 +11,7 @@ from models.filters import FilterParams
 from .schemas import AlertCreate, AlertRead, AlertUpdate, AlertQuery
 from .repository import DataRepository
 from .helpers import alert_processing_pipeline
-from models.strategy_key import SecretKeyIndex
+from models.secret_key import SecretKeyIndex
 
 
 class DataService:
@@ -62,7 +62,7 @@ class DataService:
     async def get_strategy_name_by_key(self, secret_key: str) -> Optional[str]:
         # Beanie ODM query for strategy key lookup
         doc = await SecretKeyIndex.find_one(SecretKeyIndex.secret_key == secret_key)
-        return doc.strategy_name if doc else None
+        return doc.name if doc else None
 
     async def create_with_secret_key(self, secret_key: str, payload: AlertCreate) -> AlertRead:
         strategy_name = await self.get_strategy_name_by_key(secret_key)
@@ -70,7 +70,7 @@ class DataService:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret key")
         payload_dict = payload.model_dump()
         payload_dict["secret_key"] = secret_key
-        payload_dict["strategy_name"] = strategy_name
+        payload_dict["name"] = strategy_name
         new_payload = AlertCreate(**payload_dict)
         return await self.create(new_payload)
 

@@ -4,7 +4,7 @@ from typing import Optional
 
 class SecretKeyIndex(Document):
     secret_key: str
-    strategy_name: str
+    name: str
     description: Optional[str] = None
 
     class Settings:
