@@ -22,6 +22,9 @@ def main():
     parser.add_argument("dir", help="Base directory to create the module in (will be created if needed).")
     parser.add_argument("name", help="Module name (e.g., 'data', 'user_profile').")
     parser.add_argument("--force", action="store_true", help="Overwrite files if they already exist.")
+    parser.add_argument("--router", action="store_true", help="Include router file generation.")
+
+    parser.add_argument()
     args = parser.parse_args()
 
     base_dir = Path(args.dir).expanduser().resolve()
@@ -198,6 +201,7 @@ def main():
         from .router import {router_var}  # noqa: F401
         from .schemas import {pascal}Create, {pascal}Read, {pascal}Update  # noqa: F401
         ''')
+
 
     write_file(router_py, router_code, args.force)
     write_file(schemas_py, schemas_code, args.force)

@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 class KeysBase(BaseModel):
-    secret_key: str
+    secret_key: Optional[str] = None
     strategy_name: str
     description: Optional[str] = None
 

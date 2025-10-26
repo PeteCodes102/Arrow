@@ -1,6 +1,7 @@
 from typing import List, Optional
 from .schemas import KeysCreate, KeysRead, KeysUpdate
 from .repository import KeysRepository
+from .helpers import generate_secret_key
 
 class KeysService:
     """
@@ -23,6 +24,11 @@ class KeysService:
 
     def delete(self, item_id: int) -> bool:
         return self.repo.delete(item_id)
+
+    def get_name_by_key(self, secret_key: str) -> Optional[str]:
+        # Optimized: query the repository for the item with the matching secret_key
+
+        return None
 
 # Simple dependency that you can wire into FastAPI with Depends(...)
 def get_service() -> KeysService:
