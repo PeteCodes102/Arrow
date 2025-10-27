@@ -1,9 +1,8 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
 
 from models.filters import FilterParams
-from .schemas import AlertCreate, AlertRead, AlertUpdate, AlertQuery, ChartData
+from .schemas import AlertCreate, AlertRead, AlertUpdate
 from .service import DataService, get_service
 
 data_router = APIRouter(prefix="/data", tags=["data"])
@@ -68,8 +67,22 @@ async def get_chart_data(filters: FilterParams, service: DataService = Depends(g
     return {"chart_json": chart_json}
 
 @data_router.post("/{secret_key}", response_model=AlertRead, status_code=status.HTTP_201_CREATED)
-async def create_data_with_secret_key(secret_key: str, payload: AlertCreate, service: DataService = Depends(get_service)):
+async def create_data_with_secret_key(
+    secret_key: str,
+    payload: AlertCreate,
+    service: DataService = Depends(get_service)
+) -> AlertRead:
     """
-    Create a new data item using a secret key to bind to a strategy name.
+    Create a new alert using a secret key for authentication.
+
+    This endpoint is designed for TradingView webhooks or other external integrations.
+    The secret key automatically associates the alert with the correct strategy.
+
+    Args:
+        secret_key: The secret key for strategy authentication
+        payload: The alert data
+
+    Returns:
+        The created alert with strategy information populated
     """
     return await service.create_with_secret_key(secret_key, payload)
