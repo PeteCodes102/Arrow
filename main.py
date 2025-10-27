@@ -4,7 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
 
 from db.base import init_db
-from routes.data import data_router
+from models.secret_key import SecretKeyIndex
+from routes import alert_router
 from typing import Any, cast
 
 from models.alerts import BaseAlert
@@ -17,7 +18,7 @@ DB_NAME = config('MONGO_DB_NAME')
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup code here (e.g., connect to DB)
-    app.client = await init_db(DB_URL, DB_NAME, models=[BaseAlert])
+    app.client = await init_db(DB_URL, DB_NAME, models=[BaseAlert, SecretKeyIndex])
 
     yield
     # Shutdown code here (e.g., close DB connection)
@@ -28,7 +29,7 @@ app = FastAPI(title="FARM API", lifespan=lifespan)
 # CORS: allow React dev server only
 app.add_middleware(
     FastAPICORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,7 +37,7 @@ app.add_middleware(
 
 
 
-app.include_router(data_router)
+app.include_router(alert_router)
 
 @app.get('/')
 async def root():

@@ -59,22 +59,6 @@ class DataService:
         df = await db_data_to_df(data)
         return df[k.NAME].dropna().unique().tolist()
 
-    async def get_strategy_name_by_key(self, secret_key: str) -> Optional[str]:
-        # Beanie ODM query for strategy key lookup
-        doc = await SecretKeyIndex.find_one(SecretKeyIndex.secret_key == secret_key)
-        return doc.name if doc else None
-
-    async def create_with_secret_key(self, secret_key: str, payload: AlertCreate) -> AlertRead:
-        strategy_name = await self.get_strategy_name_by_key(secret_key)
-        if not strategy_name:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret key")
-        payload_dict = payload.model_dump()
-        payload_dict["secret_key"] = secret_key
-        payload_dict["name"] = strategy_name
-        new_payload = AlertCreate(**payload_dict)
-        return await self.create(new_payload)
-
-
 # Dependency for FastAPI
 async def get_service() -> DataService:
     repo = DataRepository()

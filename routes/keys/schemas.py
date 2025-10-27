@@ -3,7 +3,7 @@ from typing import Optional
 
 class KeysBase(BaseModel):
     secret_key: Optional[str] = None
-    strategy_name: str
+    name: str
     description: Optional[str] = None
 
 class KeysCreate(KeysBase):

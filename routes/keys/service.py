@@ -11,19 +11,19 @@ class KeysService:
         self.repo = repo
 
     async def list(self) -> List[KeysRead]:
-        return self.repo.list()
+        return await self.repo.list()
 
-    async def get(self, item_id: int) -> Optional[KeysRead]:
-        return self.repo.get(item_id)
+    async def get(self, item_id: str) -> Optional[KeysRead]:
+        return await self.repo.get(item_id)
 
     async def create(self, payload: KeysCreate) -> KeysRead:
-        return self.repo.create(payload)
+        return await self.repo.create(payload)
 
-    async def update(self, item_id: int, payload: KeysUpdate) -> Optional[KeysRead]:
-        return self.repo.update(item_id, payload)
+    async def update(self, item_id: str, payload: KeysUpdate) -> Optional[KeysRead]:
+        return await self.repo.update(item_id, payload)
 
-    async def delete(self, item_id: int) -> bool:
-        return self.repo.delete(item_id)
+    async def delete(self, item_id: str) -> bool:
+        return await self.repo.delete(item_id)
 
     async def get_name_by_key(self, secret_key: str) -> Optional[str]:
         # Optimized: query the repository for the item with the matching secret_key
@@ -33,7 +33,7 @@ class KeysService:
         return None
 
 # Simple dependency that you can wire into FastAPI with Depends(...)
-def get_service() -> KeysService:
+async def get_service() -> KeysService:
     # Swap this out for DI container / db session wired repository
     repo = KeysRepository()
     return KeysService(repo)

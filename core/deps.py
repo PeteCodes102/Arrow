@@ -11,15 +11,9 @@
 import pandas as pd
 from fastapi import Depends, Request
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from routes.data import DataService, DataRepository
 
 # Dependency for FastAPI
 
 def get_db(request: Request) -> AsyncIOMotorDatabase:
     return request.app.state.db   # set in lifespan
-
-async def get_service() -> DataService:
-    repo = DataRepository()
-    return DataService(repo)
-
 
