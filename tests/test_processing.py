@@ -5,7 +5,7 @@ import importlib.util
 import pathlib
 
 # Load the processing module directly by file path to avoid importing logic.__init__ during pytest collection
-_proc_path = pathlib.Path(__file__).resolve().parents[1] / 'logic' / 'alert_data' / 'processing.py'
+_proc_path = pathlib.Path(__file__).resolve().parents[1] / 'core' / 'logic' / 'alert_data' / 'processing.py'
 _spec = importlib.util.spec_from_file_location("processing_mod", str(_proc_path))
 _processing = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_processing)  # type: ignore[arg-type]

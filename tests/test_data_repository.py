@@ -1,16 +1,17 @@
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, patch
-from routes.data.repository import DataRepository, DataDocument
-from routes.data.schemas import AlertCreate, DataUpdate
+from routes.data.repository import DataRepository
+from routes.data.schemas import AlertCreate, AlertUpdate
+from models.alerts import BaseAlert
 
 @pytest.mark.asyncio
 async def test_create_and_get():
     repo = DataRepository()
     payload = AlertCreate(contract="NQ1!", trade_type="buy", quantity=1, price=100.0)
-    with patch.object(DataDocument, "insert", new_callable=AsyncMock) as mock_insert, \
-         patch.object(DataDocument, "get", new_callable=AsyncMock) as mock_get:
-        doc = DataDocument(**payload.model_dump())
+    with patch.object(BaseAlert, "insert", new_callable=AsyncMock) as mock_insert, \
+         patch.object(BaseAlert, "get", new_callable=AsyncMock) as mock_get:
+        doc = BaseAlert(**payload.model_dump())
         doc.id = "507f1f77bcf86cd799439011"
         mock_insert.return_value = None
         mock_get.return_value = doc
@@ -23,11 +24,11 @@ async def test_create_and_get():
 async def test_update_and_delete():
     repo = DataRepository()
     payload = AlertCreate(contract="NQ1!", trade_type="buy", quantity=1, price=100.0)
-    update = DataUpdate(quantity=5)
-    with patch.object(DataDocument, "get", new_callable=AsyncMock) as mock_get, \
-         patch.object(DataDocument, "save", new_callable=AsyncMock) as mock_save, \
-         patch.object(DataDocument, "delete", new_callable=AsyncMock) as mock_delete:
-        doc = DataDocument(**payload.model_dump())
+    update = AlertUpdate(quantity=5)
+    with patch.object(BaseAlert, "get", new_callable=AsyncMock) as mock_get, \
+         patch.object(BaseAlert, "save", new_callable=AsyncMock) as mock_save, \
+         patch.object(BaseAlert, "delete", new_callable=AsyncMock) as mock_delete:
+        doc = BaseAlert(**payload.model_dump())
         doc.id = "507f1f77bcf86cd799439011"
         mock_get.return_value = doc
         mock_save.return_value = None
@@ -40,8 +41,8 @@ async def test_update_and_delete():
 @pytest.mark.asyncio
 async def test_list():
     repo = DataRepository()
-    with patch.object(DataDocument, "find_all", new_callable=AsyncMock) as mock_find_all:
-        doc = DataDocument(contract="NQ1!", trade_type="buy", quantity=1, price=100.0)
+    with patch.object(BaseAlert, "find_all", new_callable=AsyncMock) as mock_find_all:
+        doc = BaseAlert(contract="NQ1!", trade_type="buy", quantity=1, price=100.0)
         doc.id = "507f1f77bcf86cd799439011"
         mock_find_all.return_value.to_list = AsyncMock(return_value=[doc])
         items = await repo.list()

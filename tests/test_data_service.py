@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock
 from routes.data.service import DataService
-from routes.data.schemas import AlertCreate, DataUpdate, AlertRead
+from routes.data.schemas import AlertCreate, AlertUpdate, AlertRead
 
 @pytest.mark.asyncio
 async def test_service_crud():
@@ -21,7 +21,7 @@ async def test_service_crud():
     assert fetched.id == "507f1f77bcf86cd799439011"
     items = await service.list()
     assert len(items) == 1
-    updated = await service.update("507f1f77bcf86cd799439011", DataUpdate(quantity=2))
+    updated = await service.update("507f1f77bcf86cd799439011", AlertUpdate(quantity=2))
     assert updated.id == "507f1f77bcf86cd799439011"
     deleted = await service.delete("507f1f77bcf86cd799439011")
     assert deleted is True
@@ -34,6 +34,6 @@ async def test_service_not_found():
     repo.update.return_value = None
     repo.delete.return_value = False
     assert await service.get("badid") is None
-    assert await service.update("badid", DataUpdate(quantity=2)) is None
+    assert await service.update("badid", AlertUpdate(quantity=2)) is None
     assert await service.delete("badid") is False
 
