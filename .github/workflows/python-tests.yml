@@ -10,6 +10,8 @@ jobs:
   backend-tests:
     name: Backend Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
@@ -49,6 +51,8 @@ jobs:
   frontend-tests:
     name: Frontend Tests (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: ./alertfrontend
