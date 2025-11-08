@@ -1,5 +1,8 @@
 import React from 'react';
-import { Box, Divider, Stack, Typography, TextField, Button, Autocomplete, Chip, CircularProgress } from '@mui/material';
+import { Box, Divider, Stack, Typography, TextField, Button, Autocomplete, Chip, CircularProgress, Paper } from '@mui/material';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import type { AlertSeries } from '../api/types';
 import { fetchStrategyNamesFromDB } from '../api/alerts';
 
@@ -24,7 +27,7 @@ const defaultState: FiltersState = {
 
 const FiltersPanel: React.FC<FiltersPanelProps> = ({
   defaultState: overrides,
-  width = 360,
+  width = 380,
   onApply,
   onReset,
 }) => {
@@ -66,22 +69,37 @@ const FiltersPanel: React.FC<FiltersPanelProps> = ({
   };
 
   return (
-    <Box
-      component="aside"
+    <Paper
+      elevation={3}
       sx={{
-        width: { xs: 320, sm: 340, md: width },
-        borderLeft: 1,
-        borderColor: 'divider',
-        p: 2,
+        width: { xs: 340, sm: 360, md: width },
+        height: '100%',
+        p: 3,
         overflow: 'auto',
         flexShrink: 0,
+        background: 'linear-gradient(180deg, #1A1A1A 0%, #0A0A0A 100%)',
+        border: '2px solid #404040',
+        borderRadius: 2,
       }}
     >
-      <Typography variant="h6" sx={{ mb: 1 }}>
-        Filters & Options
-      </Typography>
-      <Divider sx={{ mb: 2 }} />
-      <Stack spacing={2}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+        <FilterListIcon sx={{ fontSize: 32, color: '#C0C0C0' }} />
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            fontWeight: 700,
+            background: 'linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 100%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
+          Filters & Options
+        </Typography>
+      </Box>
+      <Divider sx={{ mb: 3, borderColor: '#505050' }} />
+      
+      <Stack spacing={3}>
         <Autocomplete
           options={strategyOptions}
           loading={loadingStrategies}
@@ -96,7 +114,7 @@ const FiltersPanel: React.FC<FiltersPanelProps> = ({
                 ...params.InputProps,
                 endAdornment: (
                   <>
-                    {loadingStrategies ? <CircularProgress color="inherit" size={16} /> : null}
+                    {loadingStrategies ? <CircularProgress color="inherit" size={20} /> : null}
                     {params.InputProps.endAdornment}
                   </>
                 ),
@@ -105,45 +123,55 @@ const FiltersPanel: React.FC<FiltersPanelProps> = ({
           )}
         />
 
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label="Start Time"
-            type="time"
-            value={state.start_time || ''}
-            onChange={(e) => setState((s) => ({ ...s, start_time: e.target.value || undefined }))}
-            InputLabelProps={{ shrink: true }}
-            inputProps={{ step: 60 }}
-            fullWidth
-          />
-          <TextField
-            label="End Time"
-            type="time"
-            value={state.end_time || ''}
-            onChange={(e) => setState((s) => ({ ...s, end_time: e.target.value || undefined }))}
-            InputLabelProps={{ shrink: true }}
-            inputProps={{ step: 60 }}
-            fullWidth
-          />
-        </Stack>
+        <Box>
+          <Typography variant="subtitle2" sx={{ mb: 1.5, color: '#A0A0A0', fontWeight: 600 }}>
+            Time Range
+          </Typography>
+          <Stack direction="row" spacing={2}>
+            <TextField
+              label="Start Time"
+              type="time"
+              value={state.start_time || ''}
+              onChange={(e) => setState((s) => ({ ...s, start_time: e.target.value || undefined }))}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ step: 60 }}
+              fullWidth
+            />
+            <TextField
+              label="End Time"
+              type="time"
+              value={state.end_time || ''}
+              onChange={(e) => setState((s) => ({ ...s, end_time: e.target.value || undefined }))}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ step: 60 }}
+              fullWidth
+            />
+          </Stack>
+        </Box>
 
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label="Start Date"
-            type="date"
-            value={state.start_date || ''}
-            onChange={(e) => setState((s) => ({ ...s, start_date: e.target.value || undefined }))}
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-          />
-          <TextField
-            label="End Date"
-            type="date"
-            value={state.end_date || ''}
-            onChange={(e) => setState((s) => ({ ...s, end_date: e.target.value || undefined }))}
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-          />
-        </Stack>
+        <Box>
+          <Typography variant="subtitle2" sx={{ mb: 1.5, color: '#A0A0A0', fontWeight: 600 }}>
+            Date Range
+          </Typography>
+          <Stack direction="row" spacing={2}>
+            <TextField
+              label="Start Date"
+              type="date"
+              value={state.start_date || ''}
+              onChange={(e) => setState((s) => ({ ...s, start_date: e.target.value || undefined }))}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              value={state.end_date || ''}
+              onChange={(e) => setState((s) => ({ ...s, end_date: e.target.value || undefined }))}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+            />
+          </Stack>
+        </Box>
 
         <Autocomplete
           multiple
@@ -151,11 +179,20 @@ const FiltersPanel: React.FC<FiltersPanelProps> = ({
           value={state.days || []}
           onChange={(_, v) => setState((s) => ({ ...s, days: v }))}
           renderTags={(value: readonly string[], getTagProps) =>
-            value.map((option: string, index: number) => (
-              <Chip variant="outlined" label={option} {...getTagProps({ index })} key={option} />
-            ))
+            value.map((option: string, index: number) => {
+              const { key, ...tagProps } = getTagProps({ index });
+              return (
+                <Chip 
+                  variant="outlined" 
+                  label={option} 
+                  {...tagProps}
+                  key={key}
+                  sx={{ fontWeight: 600 }}
+                />
+              );
+            })
           }
-          renderInput={(params) => <TextField {...params} label="Days" placeholder="Select days" />}
+          renderInput={(params) => <TextField {...params} label="Days of Week" placeholder="Select days" />}
         />
 
         <Autocomplete
@@ -164,23 +201,51 @@ const FiltersPanel: React.FC<FiltersPanelProps> = ({
           value={state.weeks || []}
           onChange={(_, v) => setState((s) => ({ ...s, weeks: v }))}
           renderTags={(value: readonly number[], getTagProps) =>
-            value.map((option: number, index: number) => (
-              <Chip variant="outlined" label={`Week ${option}`} {...getTagProps({ index })} key={option} />
-            ))
+            value.map((option: number, index: number) => {
+              const { key, ...tagProps } = getTagProps({ index });
+              return (
+                <Chip 
+                  variant="outlined" 
+                  label={`Week ${option}`} 
+                  {...tagProps}
+                  key={key}
+                  sx={{ fontWeight: 600 }}
+                />
+              );
+            })
           }
           renderInput={(params) => <TextField {...params} label="Weeks" placeholder="Select weeks" />}
         />
 
-        <Stack direction="row" spacing={1}>
-          <Button variant="contained" onClick={handleApply}>
-            Apply
+        <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
+          <Button 
+            variant="contained" 
+            onClick={handleApply}
+            fullWidth
+            size="large"
+            startIcon={<CheckCircleIcon />}
+            sx={{ 
+              py: 1.5,
+              fontSize: '1.1rem',
+            }}
+          >
+            Apply Filters
           </Button>
-          <Button variant="outlined" color="inherit" onClick={handleReset}>
+          <Button 
+            variant="outlined" 
+            onClick={handleReset}
+            size="large"
+            startIcon={<RefreshIcon />}
+            sx={{ 
+              py: 1.5,
+              minWidth: 120,
+            }}
+          >
             Reset
           </Button>
         </Stack>
       </Stack>
-    </Box>
+    </Paper>
   );
 };
 
