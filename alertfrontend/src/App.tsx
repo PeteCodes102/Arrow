@@ -5,16 +5,14 @@ import ChartPane from './components/ChartPane';
 import FiltersPanel from './components/FiltersPanel';
 import SeriesSummary from './components/SeriesSummary';
 import PlotlyChart from './components/PlotlyChart';
-import { fetchAlertSeries, fetchStrategyNamesFromDB } from './api/alerts';
 import { fetchPlotlyChartFromFilters, PlotlyFigure } from './api/charts';
 import { type AlertSeries, blankAlertSeries} from './api/types';
 
 
 function App() {
-  const [series, setSeries] = React.useState<AlertSeries[]>([blankAlertSeries]);
+  const [series] = React.useState<AlertSeries[]>([blankAlertSeries]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [filters, setFilters] = React.useState<AlertSeries | null>(null);
   const [figure, setFigure] = React.useState<PlotlyFigure | null>(null);
 
   const load = React.useCallback(async (f: AlertSeries) => {
@@ -38,7 +36,6 @@ function App() {
 
   const handleApply = React.useCallback(
     (state: AlertSeries) => {
-      setFilters(state);
       load(state);
       // log the response 
     },
