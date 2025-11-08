@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock
 from routes.data.router import data_router
-from routes.data.schemas import AlertCreate, AlertRead, DataUpdate
+from routes.data.schemas import AlertCreate, AlertRead, AlertUpdate
 
 @pytest.fixture
 def app():

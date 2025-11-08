@@ -1,6 +1,6 @@
 import pytest
 from pydantic import ValidationError
-from routes.data.schemas import AlertCreate, DataUpdate, AlertRead
+from routes.data.schemas import AlertCreate, AlertUpdate, AlertRead
 import datetime as dt
 
 def test_datacreate_valid():
@@ -28,7 +28,7 @@ def test_datacreate_invalid(field, value):
         AlertCreate(**kwargs)
 
 def test_dataupdate_partial():
-    obj = DataUpdate(quantity=5)
+    obj = AlertUpdate(quantity=5)
     assert obj.quantity == 5
     assert obj.contract is None
 
